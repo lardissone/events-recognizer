@@ -11,6 +11,8 @@ export const runtime = 'edge'
 export async function POST(req: Request) {
   const { prompt } = await req.json()
 
+  const currentDate = new Date().toLocaleDateString();
+
   const response = await openai.createChatCompletion({
     model: 'gpt-4o-mini',
     stream: true,
@@ -22,6 +24,8 @@ export async function POST(req: Request) {
         If an event is recurring, include a 'recurrence' field with the recurrence rule (e.g., "FREQ=WEEKLY;BYDAY=MO,WE,FR" for an event that occurs every Monday, Wednesday, and Friday).
 
         If an event has an alarm, include an 'alarm' field with the number of minutes before the event that the alarm should trigger.
+
+        Today is ${currentDate}.
 
         Output the events as a JSON array. Do not include markdown formatting in the output.`,
       },

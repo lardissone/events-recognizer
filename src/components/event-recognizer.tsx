@@ -32,7 +32,6 @@ export default function EventRecognizer() {
   const handleSubmit = async () => {
     try {
       const result = await complete(text)
-      console.log(result)
       if (result) {
         const parsedEvents = JSON.parse(result) as Omit<Event, 'id'>[]
         const eventsWithIds = parsedEvents.map(event => ({
