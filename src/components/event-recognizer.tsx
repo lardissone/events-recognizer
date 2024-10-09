@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useCompletion } from 'ai/react'
+import { useToast } from "@/hooks/use-toast"
 
 type Event = {
   id: string
@@ -16,10 +17,17 @@ type Event = {
   alarm?: number
 }
 
+const MAX_REQUESTS_PER_MINUTE = 8
+const MAX_TEXT_LENGTH = 500
+const COOLDOWN_PERIOD = 60000 // 1 minute in milliseconds
+
 export default function EventRecognizer() {
   const [text, setText] = useState('')
   const [events, setEvents] = useState<Event[]>([])
   const [checkedEvents, setCheckedEvents] = useState<Set<string>>(new Set())
+  const [requestCount, setRequestCount] = useState(0)
+  const [lastRequestTime, setLastRequestTime] = useState(0)
+  const { toast } = useToast()
 
   const { complete, isLoading } = useCompletion({
     api: '/api/parse-events',
@@ -30,6 +38,32 @@ export default function EventRecognizer() {
   }, [events])
 
   const handleSubmit = async () => {
+    const currentTime = Date.now()
+
+    if (text.length > MAX_TEXT_LENGTH) {
+      toast({
+        title: "Text too long",
+        description: `Please limit your input to ${MAX_TEXT_LENGTH} characters.`,
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (requestCount >= MAX_REQUESTS_PER_MINUTE) {
+      if (currentTime - lastRequestTime < COOLDOWN_PERIOD) {
+        toast({
+          title: "Rate limit exceeded",
+          description: "Please wait before making more requests.",
+          variant: "destructive",
+        })
+        return
+      } else {
+        // Reset the request count after the cooldown period
+        setRequestCount(0)
+      }
+    }
+
+
     try {
       const result = await complete(text)
       if (result) {
@@ -42,8 +76,16 @@ export default function EventRecognizer() {
       } else {
         console.error('Error: result is undefined or null')
       }
+      // Update request count and last request time
+      setRequestCount(prevCount => prevCount + 1)
+      setLastRequestTime(currentTime)
     } catch (error) {
       console.error('Error parsing events:', error)
+      toast({
+        title: "Error",
+        description: "Failed to parse events. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
