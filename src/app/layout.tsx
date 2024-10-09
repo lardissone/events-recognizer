@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -14,10 +14,10 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-
 export const metadata: Metadata = {
   title: "Event recognizer",
-  description: "Simple app to generate events from plain text input and export as ICS.",
+  description:
+    "Simple app to generate events from plain text input and export as ICS.",
 };
 
 export default function RootLayout({
